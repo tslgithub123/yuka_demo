@@ -7,7 +7,7 @@ function App() {
   const [lastUpdate, setLastUpdate] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [locations, setLocations] = useState({});
-  const API_URL = "http://localhost:5000/api/latest-data";
+  const API_URL = "http://51.21.144.39:5000/api/latest-data";
   const YANTRAS = [
     {
       name: "RMC Plant",
