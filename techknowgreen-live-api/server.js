@@ -6,7 +6,11 @@ const app = express();
 const PORT = 5000;
 const allowedOrigins = [
   'http://localhost',
-  'http://51.21.144.39' // Assuming this is your EC2 public IP or a domain pointing to it
+  'http://51.21.144.39',
+  'http://yukayantra.com',
+  'http://www.yukayantra.com',
+  'https://yukayantra.com',
+  'https://www.yukayantra.com'
 ];
 
 console.log("CORS allowed origins:", allowedOrigins); // Log allowed origins
