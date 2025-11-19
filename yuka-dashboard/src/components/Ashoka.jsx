@@ -10,7 +10,7 @@ export default function Ashoka() {
     const [locations, setLocations] = useState({});
     
     const API_URL = process.env.NODE_ENV === "production"
-        ? "http://51.21.144.39:5000/api/latest-data"
+        ? "/api/latest-data"
         : "http://localhost:5000/api/latest-data";
 
     const YANTRAS = [
