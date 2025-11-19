@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Ashoka from "./components/Ashoka";
+import ComingSoon from "./components/CominSoon";
 
 function App() {
   return (
@@ -9,11 +10,7 @@ function App() {
         <Route
           path="/"
           element={
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-6">
-              <h1 className="text-6xl md:text-7xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-6">
-                Coming Soon
-              </h1>
-            </div>
+            <ComingSoon/>
           }
         />
 
