@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Ashoka from "./components/Ashoka";
-import ComingSoon from "./components/CominSoon";
+import ComingSoon from "./components/ComingSoon";
 
 function App() {
   return (
