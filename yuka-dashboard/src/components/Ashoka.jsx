@@ -68,7 +68,12 @@ export default function Ashoka() {
             outlet: "8C:4F:00:19:A1:38",
             id: "abl-01"
         },
-        { name: "P7 Highway", inlet: "8C:4F:00:19:88:C4", outlet: "8C:4F:00:19:57:F8" },
+        {
+            name: "P7 Highway",
+            inlet: "8C:4F:00:19:6A:A0",
+            outlet: "8C:4F:00:19:88:C4",
+            id: "p7-01"
+        },
     ];
 
     const FALLBACK_LOCATIONS = {
@@ -76,8 +81,8 @@ export default function Ashoka() {
         "8C:4F:00:19:A4:F0": "Airport City Road, Devanahalli, Bengaluru Rural, Karnataka, India",
         "8C:4F:00:19:5E:44": "Yartiganahalli, Devanahalli, Bengaluru Rural, Karnataka, India",
         "8C:4F:00:19:A1:38": "Yartiganahalli, Devanahalli, Bengaluru Rural, Karnataka, India",
-        "8C:4F:00:19:88:C4": "Bengaluru Rural, Karnataka, India",
-        "8C:4F:00:19:57:F8": "Bengaluru Rural, Karnataka, India"
+        "8C:4F:00:19:6A:A0": "Yartiganahalli, Devanahalli, Bengaluru Rural, Karnataka, India",
+        "8C:4F:00:19:88:C4": "Yartiganahalli, Devanahalli, Bengaluru Rural, Karnataka, India"
     };
 
     const getLocationName = async (lat, lng, devId) => {
@@ -177,9 +182,11 @@ export default function Ashoka() {
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-800 pb-20">
 
+
             {/* 1. Professional Navbar - Responsive & Square */}
             <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-auto md:h-20 py-3 md:py-0 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
+
 
                     {/* Logo Section */}
                     <div className="flex items-center gap-4 w-full md:w-auto justify-center md:justify-start">
@@ -188,11 +195,20 @@ export default function Ashoka() {
                         <div className="text-center md:text-left">
                             <div className="flex items-center justify-center md:justify-start gap-2 text-slate-900 font-bold text-base md:text-lg">
                                 <Building2 size={18} className="text-orange-600 shrink-0" />
+                                <Building2 size={18} className="text-orange-600 shrink-0" />
                                 <span className="truncate">Ashoka Buildcon Ltd.</span>
                             </div>
                             <div className="text-[10px] md:text-xs text-slate-500 font-medium uppercase tracking-wider">Dashboard</div>
                         </div>
                     </div>
+
+                    {/* <div className="text-center md:text-left">
+                            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Yuka Yantra</h1>
+                            <p className="text-slate-500 mt-2 text-sm md:text-base max-w-2xl">
+                                Real-time monitoring of air quality & purification efficiency
+                            </p>
+                        </div> */}
+
 
                     {/* Controls Section */}
                     <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-end">
@@ -201,12 +217,18 @@ export default function Ashoka() {
                             target="_blank"
                             rel="noreferrer"
                             className="inline-block cursor-pointer bg-blue-100 text-blue-600/80 border border-blue-600/10 
+                            href="https://techknowgreen-my.sharepoint.com/:f:/p/satish_chandra/EqFnT-W8Jk9JqXeMOUHMvf0Bv7sLme4fkP16aV_TNP9N2w?e=ngzl5d"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-block cursor-pointer bg-blue-100 text-blue-600/80 border border-blue-600/10 
                                      px-3 py-1.5 md:px-4 md:py-2 text-sm transition-colors duration-200 rounded-none
                                      hover:bg-blue-400 hover:text-white whitespace-nowrap"
                         >
                             View Reports
+                            View Reports
                         </a>
 
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-none text-green-700 text-xs font-bold uppercase tracking-wide whitespace-nowrap">
                         <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-none text-green-700 text-xs font-bold uppercase tracking-wide whitespace-nowrap">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -216,9 +238,12 @@ export default function Ashoka() {
                         </div>
                         <button
                             onClick={fetchData}
+                        <button
+                            onClick={fetchData}
                             disabled={isRefreshing}
                             className={`p-2 text-slate-500 hover:bg-slate-100 rounded-none transition-all ${isRefreshing ? 'animate-spin' : ''}`}
                         >
+                            <RefreshCw size={20} />
                             <RefreshCw size={20} />
                         </button>
                     </div>
@@ -227,6 +252,7 @@ export default function Ashoka() {
 
             {/* 2. Main Content Area */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+
 
                 {/* Page Title */}
                 <div className="mb-8 md:mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -260,6 +286,7 @@ export default function Ashoka() {
                             return (
                                 <div key={yantra.id} className="bg-white rounded-none border border-slate-200 overflow-hidden hover:border-blue-200 transition-shadow duration-300 shadow-sm">
 
+
                                     {/* A. Card Header */}
                                     <div className="bg-slate-50 border-b border-slate-200 px-4 md:px-6 py-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                         <div className="w-full md:w-auto">
@@ -272,6 +299,7 @@ export default function Ashoka() {
                                                 )}
                                             </h2>
                                             <div className="flex items-start md:items-center text-slate-500 text-xs md:text-sm mt-1 gap-1">
+                                                <MapPin size={14} className="shrink-0 mt-0.5 md:mt-0" />
                                                 <MapPin size={14} className="shrink-0 mt-0.5 md:mt-0" />
                                                 <span className="line-clamp-1 md:line-clamp-none">{location}</span>
                                             </div>
@@ -287,6 +315,10 @@ export default function Ashoka() {
                                                 <div className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">PM 10 Cleaned</div>
                                                 <div className="text-xl md:text-2xl font-black text-emerald-600">{pm10Red}%</div>
                                             </div>
+                                            <div className="flex-1 md:flex-none bg-white px-3 md:px-4 py-2 border border-slate-200 text-center min-w-[100px] md:min-w-[120px] rounded-none">
+                                                <div className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">Last Synced</div>
+                                                <div className="text-xl md:text-2xl text-gray-600">{lastUpdate || "--:--:--"}</div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -296,6 +328,7 @@ export default function Ashoka() {
                                         {/* 1. INLET (Dirty/Red Zone) */}
                                         <div className="lg:col-span-5 bg-gradient-to-br from-rose-50 via-white to-rose-50/30 p-5 md:p-8 relative border-b lg:border-b-0 lg:border-r border-slate-100 z-10">
                                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-rose-300"></div>
+
 
                                             <div className="flex items-center justify-between mb-6 md:mb-8">
                                                 <div className="flex items-center gap-2 text-rose-700">
@@ -312,6 +345,7 @@ export default function Ashoka() {
                                             <div className="space-y-4 md:space-y-6">
                                                 <StatRow label="PM 2.5" value={inlet?.pm2d5} unit="µg/m³" color="rose" />
                                                 <StatRow label="PM 10" value={inlet?.pm10} unit="µg/m³" color="rose" />
+
 
                                                 <div className="grid grid-cols-2 gap-3 md:gap-4 mt-4 md:mt-6 pt-4 md:pt-6 border-t border-rose-100">
                                                     <MiniStat icon={Thermometer} label="Temp" value={inlet?.temp} unit="°C" theme="rose" />
@@ -339,6 +373,7 @@ export default function Ashoka() {
                                         {/* 2. CENTER (Fan, Runtime Above, Volume Below) */}
                                         <div className="lg:col-span-2 relative flex flex-col items-center justify-between py-6 lg:py-4 bg-white overflow-hidden border-b lg:border-b-0">
 
+
                                             {/* Background Flow Line */}
                                             <div className="absolute inset-0 flex items-center justify-center">
                                                 <div className="w-1 h-full lg:w-full lg:h-1 bg-gradient-to-b lg:bg-gradient-to-r from-rose-100 via-slate-200 to-emerald-100"></div>
@@ -363,6 +398,7 @@ export default function Ashoka() {
                                             {/* TOP: Runtime */}
                                             <div className="relative z-20 bg-white/90 backdrop-blur-sm border border-slate-100 p-2 md:p-3 w-28 text-center  mb-4 lg:mb-0">
                                                 <div className="flex justify-center text-slate-400 mb-1"><Clock size={16} /></div>
+                                                <div className="flex justify-center text-slate-400 mb-1"><Clock size={16} /></div>
                                                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Runtime</div>
                                                 <div className="font-mono font-bold text-slate-800 text-sm md:text-base">
                                                     {outlet ? formatRunningTime(outlet.T_Tot) : "--"}
@@ -375,10 +411,12 @@ export default function Ashoka() {
                                                     <Fan size={32} className="text-blue-400 animate-spin-slow md:w-9 md:h-9" />
                                                 </div>
 
+
                                             </div>
 
                                             {/* BOTTOM: Volume */}
                                             <div className="relative z-20 bg-white/90 backdrop-blur-sm border border-slate-100 p-2 md:p-3 w-28 text-center mt-4 lg:mt-0">
+                                                <div className="flex justify-center text-slate-400 mb-1"><Wind size={16} /></div>
                                                 <div className="flex justify-center text-slate-400 mb-1"><Wind size={16} /></div>
                                                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Filtered</div>
                                                 <div className="font-mono font-bold text-slate-800 text-sm md:text-base">
@@ -391,6 +429,7 @@ export default function Ashoka() {
                                         {/* 3. OUTLET (Clean/Green Zone) */}
                                         <div className="lg:col-span-5 bg-gradient-to-bl from-emerald-50 via-white to-emerald-50/30 p-5 md:p-8 relative border-t lg:border-t-0 lg:border-l border-slate-100 z-10">
                                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-300 to-emerald-500"></div>
+
 
                                             <div className="flex items-center justify-between mb-6 md:mb-8">
                                                 <div className="flex items-center gap-2 text-emerald-700">
@@ -407,6 +446,7 @@ export default function Ashoka() {
                                             <div className="space-y-4 md:space-y-6">
                                                 <StatRow label="PM 2.5" value={outlet?.pm2d5} unit="µg/m³" color="emerald" />
                                                 <StatRow label="PM 10" value={outlet?.pm10} unit="µg/m³" color="emerald" />
+
 
                                                 <div className="grid grid-cols-2 gap-3 md:gap-4 mt-4 md:mt-6 pt-4 md:pt-6 border-t border-emerald-100">
                                                     <MiniStat icon={Thermometer} label="Temp" value={outlet?.temp} unit="°C" theme="emerald" />
@@ -434,6 +474,7 @@ export default function Ashoka() {
                                     </div>
 
 
+
                                 </div>
                             );
                         })}
@@ -446,6 +487,7 @@ export default function Ashoka() {
                         <img src={logo} alt="Techknowgreen" className="h-12 md:h-16 w-auto" />
                     </div>
                     <p className="text-slate-400 text-[10px] md:text-xs mt-4">
+                        © {new Date().getFullYear()} Techknowgreen Solutions Limited.
                         © {new Date().getFullYear()} Techknowgreen Solutions Limited.
                     </p>
                 </footer>
@@ -506,14 +548,15 @@ const StatRow = ({ label, value, unit, color }) => {
     const textColor = isEmerald ? 'text-emerald-700' : 'text-rose-700';
     const borderColor = isEmerald ? 'border-emerald-100' : 'border-rose-100';
 
+
     return (
         <div className={`flex justify-between items-end border-b ${borderColor} pb-2`}>
             <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</span>
             <div className="flex items-baseline gap-1">
-                <span className={`text-2xl md:text-3xl font-bold tracking-tight tabular-nums ${textColor}`}>
+                <span className={`text-5xl font-bold tracking-tight tabular-nums ${textColor}`}>
                     {value ? value.toFixed(1) : "--"}
                 </span>
-                <span className="text-[10px] md:text-xs font-semibold text-slate-400">{unit}</span>
+                <span className="text-xl font-semibold text-slate-400">{unit}</span>
             </div>
         </div>
     );
