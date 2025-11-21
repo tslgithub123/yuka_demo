@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Ashoka from "./components/Ashoka";
 import ComingSoon from "./components/ComingSoon";
+import Gases from "./components/Gases";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
 
         {/* Ashoka Buildcon Dashboard */}
         <Route path="/ashoka-buildcon" element={<Ashoka />} />
+        <Route path="/gas" element={<Gases />} />
 
         {/* Optional: 404 fallback (recommended) */}
         <Route
