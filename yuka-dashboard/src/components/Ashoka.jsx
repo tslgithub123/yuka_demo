@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import logo from "../assets/logo.png";
+import ashokaLogo from "../assets/ashoka-buildcon-limited-logo.png"
 
 
 const pollutants = [
@@ -193,12 +194,12 @@ export default function Ashoka() {
                         <img src={logo} alt="Techknowgreen" className="h-10 md:h-12 w-auto object-contain" />
                         <div className="hidden md:block w-px h-8 bg-slate-200"></div>
                         <div className="text-center md:text-left">
-                            <div className="flex items-center justify-center md:justify-start gap-2 text-slate-900 font-bold text-base md:text-lg">
-                                <Building2 size={18} className="text-orange-600 shrink-0" />
+                            {/* <div className="flex items-center justify-center md:justify-start gap-2 text-slate-900 font-bold text-base md:text-lg">
                                 <Building2 size={18} className="text-orange-600 shrink-0" />
                                 <span className="truncate">Ashoka Buildcon Ltd.</span>
-                            </div>
-                            <div className="text-[10px] md:text-xs text-slate-500 font-medium uppercase tracking-wider">Dashboard</div>
+                            </div> */}
+                        <img src={ashokaLogo} alt="Ashoka Buildcon Limited" className="h-10 md:h-12 w-auto object-contain" />
+
                         </div>
                     </div>
 
@@ -216,20 +217,14 @@ export default function Ashoka() {
                             href="https://techknowgreen-my.sharepoint.com/:f:/p/satish_chandra/EqFnT-W8Jk9JqXeMOUHMvf0Bv7sLme4fkP16aV_TNP9N2w?e=ngzl5d"
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-block cursor-pointer bg-blue-100 text-blue-600/80 border border-blue-600/10 
-                            href="https://techknowgreen-my.sharepoint.com/:f:/p/satish_chandra/EqFnT-W8Jk9JqXeMOUHMvf0Bv7sLme4fkP16aV_TNP9N2w?e=ngzl5d"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-block cursor-pointer bg-blue-100 text-blue-600/80 border border-blue-600/10 
-                                     px-3 py-1.5 md:px-4 md:py-2 text-sm transition-colors duration-200 rounded-none
-                                     hover:bg-blue-400 hover:text-white whitespace-nowrap"
+                            className="inline-block p-2 cursor-pointer bg-blue-100 hover:bg-blue-300 text-blue-600/80 border border-blue-600/10 "
                         >
-                            View Reports
+                            
                             View Reports
                         </a>
 
                         <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-none text-green-700 text-xs font-bold uppercase tracking-wide whitespace-nowrap">
-                        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-none text-green-700 text-xs font-bold uppercase tracking-wide whitespace-nowrap">
+                        
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -238,15 +233,13 @@ export default function Ashoka() {
                         </div>
                         <button
                             onClick={fetchData}
-                        <button
-                            onClick={fetchData}
                             disabled={isRefreshing}
-                            className={`p-2 text-slate-500 hover:bg-slate-100 rounded-none transition-all ${isRefreshing ? 'animate-spin' : ''}`}
+                            className={`  border border-green-200 text-slate-500 hover:bg-slate-100 rounded-none transition-all ${isRefreshing ? 'animate-spin' : ''}`}
                         >
-                            <RefreshCw size={20} />
                             <RefreshCw size={20} />
                         </button>
                     </div>
+                
                 </div>
             </nav>
 
