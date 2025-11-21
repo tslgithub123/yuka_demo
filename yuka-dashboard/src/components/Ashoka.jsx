@@ -234,7 +234,7 @@ export default function Ashoka() {
                         <button
                             onClick={fetchData}
                             disabled={isRefreshing}
-                            className={`  border border-green-200 text-slate-500 hover:bg-slate-100 rounded-none transition-all ${isRefreshing ? 'animate-spin' : ''}`}
+                            className={` text-slate-500 hover:bg-slate-100 rounded-none transition-all ${isRefreshing ? 'animate-spin' : ''}`}
                         >
                             <RefreshCw size={20} />
                         </button>
@@ -255,10 +255,7 @@ export default function Ashoka() {
                             Real-time monitoring of air quality & purification efficiency
                         </p>
                     </div>
-                    <div className="text-center md:text-right bg-slate-50 md:bg-transparent p-3 md:p-0 rounded-none">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Last Synced</p>
-                        <p className="text-base md:text-lg font-mono font-medium text-slate-700">{lastUpdate || "--:--:--"}</p>
-                    </div>
+                    
                 </div>
 
                 {isLoading ? (
@@ -292,7 +289,6 @@ export default function Ashoka() {
                                                 )}
                                             </h2>
                                             <div className="flex items-start md:items-center text-slate-500 text-xs md:text-sm mt-1 gap-1">
-                                                <MapPin size={14} className="shrink-0 mt-0.5 md:mt-0" />
                                                 <MapPin size={14} className="shrink-0 mt-0.5 md:mt-0" />
                                                 <span className="line-clamp-1 md:line-clamp-none">{location}</span>
                                             </div>
@@ -389,8 +385,8 @@ export default function Ashoka() {
                                             </div>
 
                                             {/* TOP: Runtime */}
-                                            <div className="relative z-20 bg-white/90 backdrop-blur-sm border border-slate-100 p-2 md:p-3 w-28 text-center  mb-4 lg:mb-0">
-                                                <div className="flex justify-center text-slate-400 mb-1"><Clock size={16} /></div>
+                                            <div className="relative z-20 bg-blue-50 backdrop-blur-sm border border-blue-200 p-2 md:p-3 w-28 text-center  mb-4 lg:mb-0">
+                                                
                                                 <div className="flex justify-center text-slate-400 mb-1"><Clock size={16} /></div>
                                                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Runtime</div>
                                                 <div className="font-mono font-bold text-slate-800 text-sm md:text-base">
@@ -408,8 +404,8 @@ export default function Ashoka() {
                                             </div>
 
                                             {/* BOTTOM: Volume */}
-                                            <div className="relative z-20 bg-white/90 backdrop-blur-sm border border-slate-100 p-2 md:p-3 w-28 text-center mt-4 lg:mt-0">
-                                                <div className="flex justify-center text-slate-400 mb-1"><Wind size={16} /></div>
+                                            <div className="relative z-20 bg-blue-50 backdrop-blur-sm border border-blue-200 p-2 md:p-3 w-28 text-center mt-4 lg:mt-0">
+
                                                 <div className="flex justify-center text-slate-400 mb-1"><Wind size={16} /></div>
                                                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Filtered</div>
                                                 <div className="font-mono font-bold text-slate-800 text-sm md:text-base">
@@ -569,7 +565,7 @@ const MiniStat = ({ icon: Icon, label, value, unit, theme, reduction }) => {
                     <span className={`font-bold text-sm md:text-base tabular-nums ${textClass}`}>
                         {value ? value.toFixed(1) : "--"} <span className="text-[9px] md:text-[10px] opacity-70">{unit}</span>
                     </span>
-                    <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase mt-0.5">{label}</span>
+                    <span className="text-[9px] md:text-[12px] font-bold text-slate-400 uppercase mt-0.5">{label}</span>
                 </div>
             </div>
             {reduction && (
@@ -577,7 +573,7 @@ const MiniStat = ({ icon: Icon, label, value, unit, theme, reduction }) => {
                     <span className={`font-bold text-sm md:text-base tabular-nums text-emerald-600`}>
                         {reduction}%
                     </span>
-                    <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase mt-0.5">Reduction</span>
+                    <span className="text-[9px] md:text-[12px] font-bold text-slate-400 uppercase mt-0.5">Reduction</span>
                 </div>
             )}
         </div>
