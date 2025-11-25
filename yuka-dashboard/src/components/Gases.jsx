@@ -144,7 +144,7 @@ export default function Gases() {
                     </div>{JSON.stringify(pollutants)}
                 </div>
                 <p className="text-center text-xs text-slate-400 mt-10">
-                    Live simulated data • Updates every ~5 minutes with natural diurnal patterns & random peaks
+                    Live simulated data • Updates every ~8 seconds with natural diurnal patterns & random peaks
                 </p>
             </main>
             {/* Animations */}
