@@ -179,9 +179,9 @@ app.get("/api/sites", async (req, res) => {
 
 // Health + Root
 app.get("/health", (req, res) => res.json({ status: "ok", redis: redis.isOpen, mongo: true }));
-app.get("/", (req, res) => res.send("<h1>Yuka Yantra Live API — Option C Running</h1><p><a href='/api/sites'>/api/sites</a></p>"));
+app.get("/", (req, res) => res.send("<h1>Yuka Yantra Live API Running</h1><p><a href='/api/sites'>/api/sites</a></p>"));
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`\nYuka Yantra Backend (Option C) Running on http://localhost:${PORT}`);
+  console.log(`\nYuka Yantra Backend Running on http://localhost:${PORT}`);
   console.log(`→ Dashboard API: http://localhost:${PORT}/api/sites\n`);
 });
