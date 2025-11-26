@@ -1,15 +1,16 @@
 // src/components/Ashoka.jsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import YantraCard from "./YantraCard";
 
 export default function Ashoka() {
     const [sites, setSites] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const API_URL = "http://localhost:5000/api/sites";
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch("/api/sites");
+                const res = await fetch(API_URL);
                 const json = await res.json();
                 setSites(json.sites || []);
                 setIsLoading(false);
