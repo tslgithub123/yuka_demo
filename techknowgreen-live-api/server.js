@@ -1,4 +1,4 @@
-// server.js — Full Professional Yuka Yantra Backend (Option C)
+// server.js — FINAL FINAL FINAL (Crash-Proof Edition)
 import express from "express";
 import mqtt from "mqtt";
 import cors from "cors";
@@ -19,56 +19,60 @@ const MQTT_OPTIONS = {
   reconnectPeriod: 5000,
 };
 
-const MONGO_URI = "mongodb://localhost:27017"; // Change if remote
+const MONGO_URI = "mongodb://localhost:27017";
 const DB_NAME = "yuka_yantra";
-const COLLECTIONS = {
-  sites: "yantra_sites",
-  devices: "devices", // caches real addresses from GPS
-};
 
-// Smart CORS (all localhost + production)
+// CORS
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || origin.includes("localhost") || origin.includes("127.0.0.1")) {
-      return callback(null, true);
-    }
-    const allowed = [
-      "http://51.21.144.39",
-      "http://yukayantra.com", "https://yukayantra.com",
-      "http://www.yukayantra.com", "https://www.yukayantra.com"
-    ];
-    return callback(allowed.includes(origin) ? null : new Error("CORS blocked"), allowed.includes(origin));
-  }
+    if (!origin || /localhost|127\.0\.0\.1/.test(origin)) return callback(null, true);
+    const allowed = ["yukayantra.com", "51.21.144.39"];
+    const ok = allowed.some(d => origin.includes(d));
+    callback(ok ? null : new Error("CORS"), ok);
+  },
+  credentials: true
 }));
 app.use(express.json());
 
 // ==================== REDIS ====================
 const redis = createClient({ url: "redis://localhost:6379" });
 await redis.connect();
-redis.on("error", (err) => console.error("Redis Error:", err));
 
 // ==================== MONGODB ====================
 const mongo = new MongoClient(MONGO_URI, { serverApi: ServerApiVersion.v1 });
 await mongo.connect();
 const db = mongo.db(DB_NAME);
-console.log("Connected to MongoDB + Redis");
 
-// ==================== REVERSE GEOCODE CACHE ====================
+// Indexes
+await db.collection("devices").createIndex({ mac: 1 }, { unique: true });
+await db.collection("yantra_sites").createIndex({ siteId: 1 }, { unique: true });
+
+// ==================== SAFE JSON PARSE ====================
+const safeJsonParse = (str, fallback = null) => {
+  if (!str) return fallback;
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    console.warn("Invalid JSON received, skipping:", str.substring(0, 100));
+    return fallback;
+  }
+};
+
+// ==================== GEOCODING (ONCE PER DEVICE) ====================
 const getAddressFromCoords = async (lat, lng) => {
-  if (!lat || !lng || lat === 0 || lng === 0) return null;
-  const cacheKey = `addr:${lat.toFixed(5)}:${lng.toFixed(5)}`;
-  const cached = await redis.get(cacheKey);
+  const key = `geo:${lat.toFixed(5)}:${lng.toFixed(5)}`;
+  const cached = await redis.get(key);
   if (cached) return cached;
 
   try {
     const res = await axios.get(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1`
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`,
+      { timeout: 8000 }
     );
     const addr = res.data.display_name.split(",").slice(-6).join(", ").replace(/, India$/, ", India");
-    await redis.setEx(cacheKey, 86400 * 30, addr); // cache 30 days
+    await redis.setEx(key, 7776000, addr); // 90 days
     return addr;
-  } catch (err) {
-    console.warn("Geocode failed:", err.message);
+  } catch (e) {
     return null;
   }
 };
@@ -82,67 +86,96 @@ mqttClient.on("connect", () => {
 });
 
 mqttClient.on("message", async (topic, message) => {
+  const raw = message.toString().trim();
+  if (!raw) return;
+
+  let payload;
   try {
-    const payload = JSON.parse(message.toString());
-    if (!payload.data || !Array.isArray(payload.data)) return;
+    payload = JSON.parse(raw);
+  } catch (e) {
+    console.warn("Non-JSON message ignored:", raw.substring(0, 100));
+    return;
+  }
 
-    for (const sensor of payload.data) {
-      const devId = sensor.devId?.trim();
-      if (!devId) continue;
+  if (!payload.data || !Array.isArray(payload.data)) return;
 
-      const normalized = {
-        devId,
-        receivedAt: new Date().toISOString(),
-        ts: sensor.ts || null,
-        temp: sensor.temp != null ? Number(sensor.temp) : null,
-        hum: sensor.hum != null ? Number(sensor.hum) : null,
-        pressure: sensor.pressure != null ? Number(sensor.pressure) : null,
-        lat: sensor.lat != null ? Number(sensor.lat) : null,
-        lng: sensor.lng != null ? Number(sensor.lng) : null,
-        rssi: sensor.rssi || null,
-        pm2d5: sensor.pm2d5 != null ? Number(sensor.pm2d5) : null,
-        pm10: sensor.pm10 != null ? Number(sensor.pm10) : null,
-        aqi: sensor.aqi != null ? parseInt(sensor.aqi) : null,
-        T_Tot: sensor.T_Tot ?? null,
-        V_Tot: sensor.V_Tot ?? null,
-      };
+  for (const sensor of payload.data) {
+    const devId = sensor.devId?.toString().trim();
+    if (!devId) continue;
 
-      // Save latest in Redis (expires in 10 min if no update)
-      await redis.setEx(devId, 600, JSON.stringify(normalized));
+    const normalized = {
+      devId,
+      receivedAt: new Date().toISOString(),
+      ts: sensor.ts || null,
+      temp: sensor.temp != null ? Number(sensor.temp) : null,
+      hum: sensor.hum != null ? Number(sensor.hum) : null,
+      pressure: sensor.pressure != null ? Number(sensor.pressure) : null,
+      lat: sensor.lat != null ? Number(sensor.lat) : null,
+      lng: sensor.lng != null ? Number(sensor.lng) : null,
+      rssi: sensor.rssi ?? null,
+      pm2d5: sensor.pm2d5 != null ? Number(sensor.pm2d5) : null,
+      pm10: sensor.pm10 != null ? Number(sensor.pm10) : null,
+      aqi: sensor.aqi != null ? parseInt(sensor.aqi, 10) : null,
+      T_Tot: sensor.T_Tot ?? null,
+      V_Tot: sensor.V_Tot ?? null,
+    };
 
-      // Update real address if GPS is valid
-      if (normalized.lat && normalized.lng && normalized.lat !== 0 && normalized.lng !== 0) {
-        const realAddress = await getAddressFromCoords(normalized.lat, normalized.lng);
-        if (realAddress) {
+    // Save to Redis (10 min TTL)
+    await redis.setEx(devId, 600, JSON.stringify(normalized));
+
+    // Intelligent geocoding — only once or if moved >100m
+    if (normalized.lat && normalized.lng && normalized.lat !== 0 && normalized.lng !== 0) {
+      const existing = await db.collection("devices").findOne({ mac: devId });
+
+      const moved = existing &&
+        (Math.abs(existing.lastLat - normalized.lat) > 0.001 ||
+          Math.abs(existing.lastLng - normalized.lng) > 0.001);
+
+      if (!existing || !existing.lastAddress || moved) {
+        const addr = await getAddressFromCoords(normalized.lat, normalized.lng);
+        if (addr) {
           await db.collection("devices").updateOne(
             { mac: devId },
-            { $set: { lastAddress: realAddress, lastLat: normalized.lat, lastLng: normalized.lng, updatedAt: new Date() } },
+            {
+              $set: {
+                lastAddress: addr,
+                lastLat: normalized.lat,
+                lastLng: normalized.lng,
+                lastGeocodedAt: new Date(),
+                updatedAt: new Date()
+              }
+            },
             { upsert: true }
           );
+          console.log(`Geocoded: ${devId} → ${addr}`);
         }
       }
     }
-  } catch (err) {
-    console.error("MQTT parse error:", err.message);
   }
 });
 
-// ==================== API: GROUPED SITES ====================
+// ==================== API /api/sites ====================
 app.get("/api/sites", async (req, res) => {
   try {
-    const sites = await db.collection(COLLECTIONS.sites).find({}).toArray();
-    const latestKeys = await redis.keys("*");
+    const sites = await db.collection("yantra_sites").find({}).toArray();
+
+    // Get all latest data from Redis
+    const keys = await redis.keys("*");
     const latestData = {};
-    for (const key of latestKeys) {
-      if (key.includes("addr:")) continue;
-      const data = await redis.get(key);
-      if (data) latestData[key] = JSON.parse(data);
+    for (const k of keys) {
+      if (k.startsWith("geo:")) continue;
+      const val = await redis.get(k);
+      if (val) {
+        const parsed = safeJsonParse(val);
+        if (parsed) latestData[k] = parsed;
+      }
     }
 
-    const deviceCache = await db.collection("devices")
-      .find({ mac: { $in: latestKeys.filter(k => !k.includes(":")) } })
+    // Address map
+    const addrDocs = await db.collection("devices")
+      .find({ mac: { $in: Object.keys(latestData) } })
       .toArray();
-    const addrMap = Object.fromEntries(deviceCache.map(d => [d.mac, d.lastAddress]));
+    const addrMap = Object.fromEntries(addrDocs.map(d => [d.mac, d.lastAddress]));
 
     const result = sites.map(site => {
       const inlet = latestData[site.inletMac] || null;
@@ -150,12 +183,11 @@ app.get("/api/sites", async (req, res) => {
       const isOnline = !!(inlet || outlet);
       const lastUpdate = inlet?.receivedAt || outlet?.receivedAt || null;
 
-      // Smart location: real → cached → fallback
       let location = site.fallbackAddress || "Location unavailable";
-      if (inlet?.lat && inlet.lng && inlet.lat !== 0) {
-        location = addrMap[site.inletMac] || location;
-      } else if (outlet?.lat && outlet.lng && outlet.lat !== 0) {
-        location = addrMap[site.outletMac] || location;
+      if (inlet?.lat && inlet.lat !== 0 && addrMap[site.inletMac]) {
+        location = addrMap[site.inletMac];
+      } else if (outlet?.lat && outlet.lat !== 0 && addrMap[site.outletMac]) {
+        location = addrMap[site.outletMac];
       }
 
       return {
@@ -170,18 +202,40 @@ app.get("/api/sites", async (req, res) => {
       };
     });
 
-    res.json({ success: true, sites: result.filter(s => s.isOnline) });
+    res.json({
+      success: true,
+      generatedAt: new Date().toISOString(),
+      sites: result.filter(s => s.isOnline)
+    });
   } catch (err) {
     console.error("API Error:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Health + Root
-app.get("/health", (req, res) => res.json({ status: "ok", redis: redis.isOpen, mongo: true }));
-app.get("/", (req, res) => res.send("<h1>Yuka Yantra Live API Running</h1><p><a href='/api/sites'>/api/sites</a></p>"));
+// ==================== ADMIN ADD SITE ====================
+app.post("/api/admin/add-site", async (req, res) => {
+  try {
+    const { siteId, name, client, inletMac, outletMac, fallbackAddress } = req.body;
+    if (!siteId || !inletMac || !outletMac) {
+      return res.status(400).json({ success: false, message: "Missing fields" });
+    }
+    await db.collection("yantra_sites").updateOne(
+      { siteId },
+      { $set: { name, client, inletMac, outletMac, fallbackAddress, addedAt: new Date() } },
+      { upsert: true }
+    );
+    res.json({ success: true, message: "Site saved" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Health
+app.get("/health", (req, res) => res.json({ status: "OK", time: new Date().toISOString() }));
+app.get("/", (req, res) => res.send("<h1>Yuka Yantra — FINAL FINAL FINAL — Running</h1>"));
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`\nYuka Yantra Backend Running on http://localhost:${PORT}`);
-  console.log(`→ Dashboard API: http://localhost:${PORT}/api/sites\n`);
+  console.log(`\nYuka Yantra Server Running → http://localhost:${PORT}`);
+  console.log(`Dashboard → http://localhost:5173/ashoka-buildcon\n`);
 });
