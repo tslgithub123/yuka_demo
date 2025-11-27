@@ -1,4 +1,4 @@
-// server.js — FINAL WORKING LEAN EDITION (Node.js v24+ Ready)
+// server.js — FINAL LEAN & PROFESSIONAL EDITION (With Beautiful Console Logs)
 import express from "express";
 import mqtt from "mqtt";
 import cors from "cors";
@@ -22,33 +22,32 @@ const MQTT_OPTIONS = {
 const MONGO_URI = "mongodb://localhost:27017";
 const DB_NAME = "yuka_yantra";
 
-// ==================== CORS (FIXED!) ====================
+// ==================== CORS ====================
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow localhost & no origin (Postman, etc.)
     if (!origin || /localhost|127\.0\.0\.1/.test(origin)) {
       return callback(null, true);
     }
-    // Allow production domains
     const allowed = ["yukayantra.com", "51.21.144.39"];
-    const isAllowed = allowed.some(domain => origin.includes(domain));
-    return callback(isAllowed ? null : new Error("CORS not allowed"), isAllowed);
+    const isAllowed = allowed.some(d => origin.includes(d));
+    return callback(isAllowed ? null : new Error("CORS blocked"), isAllowed);
   },
   credentials: true
 }));
-
 app.use(express.json());
 
 // ==================== REDIS ====================
 const redis = createClient();
 await redis.connect();
+console.log("Redis connected");
 
 // ==================== MONGODB ====================
 const mongo = new MongoClient(MONGO_URI, { serverApi: ServerApiVersion.v1 });
 await mongo.connect();
 const db = mongo.db(DB_NAME);
+console.log("MongoDB connected");
 
-// Indexes
+// Create indexes once
 await db.collection("devices").createIndex({ mac: 1 }, { unique: true });
 await db.collection("yantra_sites").createIndex({ siteId: 1 }, { unique: true });
 
@@ -56,11 +55,11 @@ await db.collection("yantra_sites").createIndex({ siteId: 1 }, { unique: true })
 const getAddressFromCoords = async (lat, lng) => {
   if (!lat || !lng || lat === 0 || lng === 0) return null;
 
-  const existing = await db.collection("devices").findOne({
+  const cached = await db.collection("devices").findOne({
     lastLat: { $gte: lat - 0.001, $lte: lat + 0.001 },
     lastLng: { $gte: lng - 0.001, $lte: lng + 0.001 }
   });
-  if (existing?.lastAddress) return existing.lastAddress;
+  if (cached?.lastAddress) return cached.lastAddress;
 
   try {
     const { data } = await axios.get(
@@ -78,8 +77,10 @@ const getAddressFromCoords = async (lat, lng) => {
 const mqttClient = mqtt.connect(MQTT_BROKER, MQTT_OPTIONS);
 
 mqttClient.on("connect", () => {
-  console.log("MQTT Connected");
-  mqttClient.subscribe(["Techknowgreen ", "Techknowgreen"]);
+  console.log("MQTT Connected to mqtt.ambeedata.com");
+  mqttClient.subscribe(["Techknowgreen ", "Techknowgreen"], (err) => {
+    if (!err) console.log("Subscribed to Techknowgreen topics");
+  });
 });
 
 mqttClient.on("message", async (topic, msg) => {
@@ -90,6 +91,8 @@ mqttClient.on("message", async (topic, msg) => {
   try { payload = JSON.parse(raw); } catch { return; }
 
   if (!Array.isArray(payload.data)) return;
+
+  let updatedCount = 0;
 
   for (const s of payload.data) {
     const devId = s.devId?.trim();
@@ -111,7 +114,9 @@ mqttClient.on("message", async (topic, msg) => {
     };
 
     await redis.setEx(devId, 600, JSON.stringify(data));
+    updatedCount++;
 
+    // Update real address only if GPS moved significantly
     if (data.lat && data.lng && data.lat !== 0) {
       const doc = await db.collection("devices").findOne({ mac: devId });
       const moved = !doc ||
@@ -126,11 +131,21 @@ mqttClient.on("message", async (topic, msg) => {
             { $set: { lastAddress: addr, lastLat: data.lat, lastLng: data.lng, updatedAt: new Date() } },
             { upsert: true }
           );
+          console.log(`New location cached: ${devId} → ${addr}`);
         }
       }
     }
   }
+
+  if (updatedCount > 0) {
+    console.log(`Updated ${updatedCount} device(s) from MQTT`);
+  }
 });
+
+// Fixed these lines (the real culprit!)
+mqttClient.on("error", (err) => console.error("MQTT Error:", err.message));
+mqttClient.on("reconnect", () => console.log("MQTT Reconnecting..."));
+mqttClient.on("offline", () => console.warn("MQTT Offline"));
 
 // ==================== API /api/sites ====================
 app.get("/api/sites", async (req, res) => {
@@ -173,13 +188,18 @@ app.get("/api/sites", async (req, res) => {
       };
     });
 
+    const onlineSites = result.filter(s => s.isOnline);
+
+    console.log(`API /api/sites → Served ${onlineSites.length} online site(s) to dashboard`);
+
     res.json({
       success: true,
       generatedAt: new Date().toISOString(),
-      sites: result.filter(s => s.isOnline)
+      totalOnline: onlineSites.length,
+      sites: onlineSites
     });
   } catch (err) {
-    console.error("API Error:", err);
+    console.error("API Error:", err.message);
     res.status(500).json({ success: false, error: "Server error" });
   }
 });
@@ -187,25 +207,54 @@ app.get("/api/sites", async (req, res) => {
 // ==================== ADMIN ADD SITE ====================
 app.post("/api/admin/add-site", async (req, res) => {
   const { siteId, name, client, inletMac, outletMac, fallbackAddress } = req.body;
+
   if (!siteId || !inletMac || !outletMac) {
-    return res.status(400).json({ success: false, message: "Missing required fields" });
+    return res.status(400).json({ success: false, message: "siteId, inletMac, outletMac required" });
   }
 
-  await db.collection("yantra_sites").updateOne(
-    { siteId },
-    { $set: { name, client, inletMac, outletMac, fallbackAddress, updatedAt: new Date() } },
-    { upsert: true }
-  );
+  try {
+    await db.collection("yantra_sites").updateOne(
+      { siteId },
+      { $set: { name, client, inletMac, outletMac, fallbackAddress, updatedAt: new Date() } },
+      { upsert: true }
+    );
 
-  res.json({ success: true, message: "Site added/updated" });
+    console.log(`Admin: New site added → ${siteId} (${name})`);
+    res.json({ success: true, message: "Site added successfully" });
+  } catch (err) {
+    console.error("Admin add site failed:", err);
+    res.status(500).json({ success: false, message: "Failed to save" });
+  }
 });
 
 // ==================== HEALTH & ROOT ====================
-app.get("/health", (_, res) => res.json({ status: "OK", time: new Date().toISOString() }));
-app.get("/", (_, res) => res.send("<h1>Yuka Yantra — LIVE & STABLE</h1><p>/api/sites → Dashboard Data</p>"));
+app.get("/health", (_, res) => {
+  res.json({
+    status: "OK",
+    redis: redis.isOpen,
+    mqtt: mqttClient.connected,
+    time: new Date().toISOString()
+  });
+});
+
+app.get("/", (_, res) => {
+  res.send(`
+    <div style="font-family: system-ui; padding: 2rem; text-align: center;">
+      <h1 style="color: #0d9488;">Yuka Yantra — LIVE & STABLE</h1>
+      <p><strong>Dashboard:</strong> <a href="/api/sites">/api/sites</a></p>
+      <p><strong>Health:</strong> <a href="/health">/health</a></p>
+      <p style="color: #6b7280; margin-top: 2rem;">Server running smoothly • ${new Date().toLocaleString("en-IN")}</p>
+    </div>
+  `);
+});
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`\nYUKA YANTRA SERVER IS LIVE`);
-  console.log(`→ http://localhost:${PORT}/api/sites`);
-  console.log(`→ Admin API: POST /api/admin/add-site\n`);
+  console.log("\n");
+  console.log("YUKA YANTRA SERVER IS LIVE");
+  console.log("════════════════════════════════");
+  console.log(`Dashboard API → http://localhost:${PORT}/api/sites`);
+  console.log(`Health Check  → http://localhost:${PORT}/health`);
+  console.log(`Admin Add     → POST /api/admin/add-site`);
+  console.log(`Server Time   → ${new Date().toLocaleString("en-IN")}`);
+  console.log("════════════════════════════════\n");
 });
