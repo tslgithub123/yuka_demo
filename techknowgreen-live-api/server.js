@@ -1,3 +1,4 @@
+// server.js — FINAL PROFESSIONAL EDITION + /api/recent-devices (unique, in-memory, permanent)
 import express from "express";
 import mqtt from "mqtt";
 import cors from "cors";
@@ -21,6 +22,9 @@ const MQTT_OPTIONS = {
 const MONGO_URI = "mongodb://localhost:27017";
 const DB_NAME = "yuka_yantra";
 
+// ==================== IN-MEMORY: UNIQUE DEVICES (Permanent) ====================
+const recentUniqueDevices = new Map();  // key: devId → value: latest full sensor object
+
 // ==================== CORS ====================
 app.use(cors({
   origin: (origin, callback) => {
@@ -35,7 +39,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// ==================== REDIS ====================
+// ==================== REDIS (for live dashboard) ====================
 const redis = createClient();
 await redis.connect();
 console.log("Redis connected");
@@ -46,7 +50,6 @@ await mongo.connect();
 const db = mongo.db(DB_NAME);
 console.log("MongoDB connected");
 
-// Create indexes once
 await db.collection("devices").createIndex({ mac: 1 }, { unique: true });
 await db.collection("yantra_sites").createIndex({ siteId: 1 }, { unique: true });
 
@@ -100,22 +103,36 @@ mqttClient.on("message", async (topic, msg) => {
     const data = {
       devId,
       receivedAt: new Date().toISOString(),
+      ts: s.ts || null,
       temp: Number(s.temp ?? NaN) || null,
       hum: Number(s.hum ?? NaN) || null,
       pressure: Number(s.pressure ?? NaN) || null,
       lat: Number(s.lat ?? NaN) || null,
       lng: Number(s.lng ?? NaN) || null,
+      rssi: s.rssi || null,
       pm2d5: Number(s.pm2d5 ?? NaN) || null,
       pm10: Number(s.pm10 ?? NaN) || null,
       aqi: parseInt(s.aqi ?? "", 10) || null,
+      pm25_aqi: s.pm25_aqi ?? null,
+      pm10_aqi: s.pm10_aqi ?? null,
+      fw_v: s.fw_v ?? null,
       T_Tot: s.T_Tot ?? null,
       V_Tot: s.V_Tot ?? null,
+      Volume: s.Volume ?? null,
+      Totalizer: s.Totalizer ?? null,
+      ms: s.ms ?? null,
+      us: s.us ?? null,
+      PC: s.PC ?? null,
     };
 
+    // === 1. Update live dashboard (Redis) ===
     await redis.setEx(devId, 600, JSON.stringify(data));
     updatedCount++;
 
-    // Update real address only if GPS moved significantly
+    // === 2. Update in-memory unique devices (permanent) ===
+    recentUniqueDevices.set(devId, data);
+
+    // === 3. Update real address if GPS changed ===
     if (data.lat && data.lng && data.lat !== 0) {
       const doc = await db.collection("devices").findOne({ mac: devId });
       const moved = !doc ||
@@ -130,23 +147,37 @@ mqttClient.on("message", async (topic, msg) => {
             { $set: { lastAddress: addr, lastLat: data.lat, lastLng: data.lng, updatedAt: new Date() } },
             { upsert: true }
           );
-          console.log(`New location cached: ${devId} → ${addr}`);
+          console.log(`Location updated: ${devId} → ${addr}`);
         }
       }
     }
   }
 
   if (updatedCount > 0) {
-    console.log(`Updated ${updatedCount} device(s) from MQTT`);
+    console.log(`Updated ${updatedCount} device(s) • Total unique seen: ${recentUniqueDevices.size}`);
   }
 });
 
-// Fixed these lines (the real culprit!)
 mqttClient.on("error", (err) => console.error("MQTT Error:", err.message));
 mqttClient.on("reconnect", () => console.log("MQTT Reconnecting..."));
 mqttClient.on("offline", () => console.warn("MQTT Offline"));
 
-// ==================== API /api/sites ====================
+// ==================== NEW API: UNIQUE RECENT DEVICES (In-Memory) ====================
+app.get("/api/recent-devices", (req, res) => {
+  const devices = Array.from(recentUniqueDevices.values())
+    .sort((a, b) => new Date(b.receivedAt) - new Date(a.receivedAt)); // newest first
+
+  console.log(`/api/recent-devices → ${devices.length} unique device(s) served`);
+
+  res.json({
+    success: true,
+    totalUniqueDevices: devices.length,
+    generatedAt: new Date().toISOString(),
+    devices
+  });
+});
+
+// ==================== API /api/sites (unchanged) ====================
 app.get("/api/sites", async (req, res) => {
   try {
     const sites = await db.collection("yantra_sites").find({}).toArray();
@@ -178,7 +209,7 @@ app.get("/api/sites", async (req, res) => {
       return {
         siteId: site.siteId,
         name: site.name,
-        client: site.client,
+        client: site.client || "Ashoka Buildcon",
         location,
         isOnline: !!(inlet || outlet),
         lastUpdate: inlet?.receivedAt || outlet?.receivedAt || null,
@@ -189,7 +220,7 @@ app.get("/api/sites", async (req, res) => {
 
     const onlineSites = result.filter(s => s.isOnline);
 
-    console.log(`API /api/sites → Served ${onlineSites.length} online site(s) to dashboard`);
+    console.log(`API /api/sites → Served ${onlineSites.length} online site(s)`);
 
     res.json({
       success: true,
@@ -218,11 +249,11 @@ app.post("/api/admin/add-site", async (req, res) => {
       { upsert: true }
     );
 
-    console.log(`Admin: New site added → ${siteId} (${name})`);
-    res.json({ success: true, message: "Site added successfully" });
+    console.log(`Admin: Site added → ${siteId} (${name})`);
+    res.json({ success: true, message: "Site added" });
   } catch (err) {
-    console.error("Admin add site failed:", err);
-    res.status(500).json({ success: false, message: "Failed to save" });
+    console.error("Add site failed:", err);
+    res.status(500).json({ success: false, message: "Failed" });
   }
 });
 
@@ -232,28 +263,31 @@ app.get("/health", (_, res) => {
     status: "OK",
     redis: redis.isOpen,
     mqtt: mqttClient.connected,
+    uniqueDevicesSeen: recentUniqueDevices.size,
     time: new Date().toISOString()
   });
 });
 
 app.get("/", (_, res) => {
   res.send(`
-    <div style="font-family: system-ui; padding: 2rem; text-align: center;">
-      <h1 style="color: #0d9488;">Yuka Yantra — LIVE & STABLE</h1>
+    <div style="font-family: system-ui; padding: 2rem; text-align: center; line-height: 1.8;">
+      <h1 style="color: #0d9488;">Yuka Yantra — LIVE</h1>
       <p><strong>Dashboard:</strong> <a href="/api/sites">/api/sites</a></p>
+      <p><strong>Unique Devices (Raw):</strong> <a href="/api/recent-devices" style="color:#7c3aed;">/api/recent-devices</a></p>
       <p><strong>Health:</strong> <a href="/health">/health</a></p>
-      <p style="color: #6b7280; margin-top: 2rem;">Server running smoothly • ${new Date().toLocaleString("en-IN")}</p>
+      <p style="color: #6b7280; margin-top: 2rem;">Server running • ${new Date().toLocaleString("en-IN")}</p>
     </div>
   `);
 });
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log("\n");
-  console.log("YUKA YANTRA SERVER IS LIVE");
-  console.log("════════════════════════════════");
-  console.log(`Dashboard API → http://localhost:${PORT}/api/sites`);
-  console.log(`Health Check  → http://localhost:${PORT}/health`);
-  console.log(`Admin Add     → POST /api/admin/add-site`);
-  console.log(`Server Time   → ${new Date().toLocaleString("en-IN")}`);
-  console.log("════════════════════════════════\n");
+  console.log("YUKA YANTRA SERVER — FINAL VERSION");
+  console.log("══════════════════════════════════");
+  console.log(`Dashboard API      → http://localhost:${PORT}/api/sites`);
+  console.log(`Unique Devices Raw  → http://localhost:${PORT}/api/recent-devices`);
+  console.log(`Health Check        → http://localhost:${PORT}/health`);
+  console.log(`Admin Add Site      → POST /api/admin/add-site`);
+  console.log(`Server Time         → ${new Date().toLocaleString("en-IN")}`);
+  console.log("══════════════════════════════════\n");
 });
