@@ -104,7 +104,7 @@ export default function YantraCard({ site }) {
                     <div className="flex-1 md:flex-none bg-white px-3 md:px-4 py-2 border border-slate-200 text-center min-w-[100px] md:min-w-[120px] rounded-none">
                         <div className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">Last Synced</div>
                         <div className="text-xl md:text-2xl text-gray-600">
-                            {lastUpdate ? new Date(lastUpdate).toLocaleTimeString("en-IN") : "--:--"}
+                            {lastUpdate ? new Date(lastUpdate).toLocaleString("en-IN") : "--:--"}
                         </div>
                     </div>
                 </div>

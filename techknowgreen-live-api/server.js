@@ -1,4 +1,3 @@
-// server.js — FINAL LEAN & PROFESSIONAL EDITION (With Beautiful Console Logs)
 import express from "express";
 import mqtt from "mqtt";
 import cors from "cors";
@@ -179,7 +178,7 @@ app.get("/api/sites", async (req, res) => {
       return {
         siteId: site.siteId,
         name: site.name,
-        client: site.client || "Ashoka Buildcon",
+        client: site.client,
         location,
         isOnline: !!(inlet || outlet),
         lastUpdate: inlet?.receivedAt || outlet?.receivedAt || null,
