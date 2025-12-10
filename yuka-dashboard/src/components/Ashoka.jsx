@@ -23,8 +23,8 @@ import ashokaLogo from "../assets/ashoka-buildcon-limited-logo.png"
 
 
 const pollutants = [
-    { name: "NO₂", unit: "PPB", min: 7.6, max: 35, dayMin: 18, dayMax: 32, red: [0.66, 0.86] },
-    { name: "SO₂", unit: "PPB", min: 3.6, max: 38, dayMin: 12, dayMax: 49, red: [0.65, 0.89] },
+    { name: "NO₂", unit: "µg/m³", min: 7.6, max: 35, dayMin: 18, dayMax: 32, red: [0.66, 0.86] },
+    { name: "SO₂", unit: "µg/m³", min: 3.6, max: 38, dayMin: 12, dayMax: 49, red: [0.65, 0.89] },
     { name: "TVOC", unit: "ppm", min: 0.15, max: 0.89, dayMin: 0.20, dayMax: 0.89, red: [0.56, 0.89] },
     { name: "CO₂", unit: "ppm", min: 417, max: 562, dayMin: 450, dayMax: 560, red: [0.05, 0.10] },
     { name: "CO", unit: "PPB", min: 154, max: 601, dayMin: 265, dayMax: 601, red: [0.20, 0.35] },
@@ -198,7 +198,7 @@ export default function Ashoka() {
                                 <Building2 size={18} className="text-orange-600 shrink-0" />
                                 <span className="truncate">Ashoka Buildcon Ltd.</span>
                             </div> */}
-                        <img src={ashokaLogo} alt="Ashoka Buildcon Limited" className="h-10 md:h-12 w-auto object-contain" />
+                            <img src={ashokaLogo} alt="Ashoka Buildcon Limited" className="h-10 md:h-12 w-auto object-contain" />
 
                         </div>
                     </div>
@@ -219,12 +219,12 @@ export default function Ashoka() {
                             rel="noreferrer"
                             className="inline-block p-2 cursor-pointer bg-blue-100 hover:bg-blue-300 text-blue-600/80 border border-blue-600/10 "
                         >
-                            
+
                             View Reports
                         </a>
 
                         <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-none text-green-700 text-xs font-bold uppercase tracking-wide whitespace-nowrap">
-                        
+
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -239,7 +239,7 @@ export default function Ashoka() {
                             <RefreshCw size={20} />
                         </button>
                     </div>
-                
+
                 </div>
             </nav>
 
@@ -255,7 +255,7 @@ export default function Ashoka() {
                             Real-time monitoring of air quality & purification efficiency
                         </p>
                     </div>
-                    
+
                 </div>
 
                 {isLoading ? (
@@ -345,15 +345,16 @@ export default function Ashoka() {
                                                         <div className="text-center mb-4 text-[14px] md:text-[16px] font-bold text-slate-400 uppercase"> Gases</div>
                                                         <div className="grid grid-cols-2 gap-3 md:gap-4">
                                                             <MiniStat icon={CloudFog} label="NO₂" value={gasData['NO₂']?.inlet} unit={gasData['NO₂']?.unit} theme="rose" />
-                                                            <MiniStat icon={Cloud} label="CO₂" value={gasData['CO₂']?.inlet} unit={gasData['CO₂']?.unit} theme="rose" />
+                                                            {/* <MiniStat icon={Cloud} label="CO₂" value={gasData['CO₂']?.inlet} unit={gasData['CO₂']?.unit} theme="rose" /> */}
+                                                            <MiniStat icon={FlaskConical} label="TVOC" value={gasData['TVOC']?.inlet} unit={gasData['TVOC']?.unit} theme="rose" />
                                                         </div>
                                                         <div className="grid grid-cols-2 gap-3 mt-4 md:gap-4">
                                                             <MiniStat icon={CloudRain} label="SO₂" value={gasData['SO₂']?.inlet} unit={gasData['SO₂']?.unit} theme="rose" />
                                                             <MiniStat icon={Flame} label="CO" value={gasData['CO']?.inlet} unit={gasData['CO']?.unit} theme="rose" />
                                                         </div>
-                                                        <div className="grid grid-cols-2 gap-3 mt-4 md:gap-4">
+                                                        {/* <div className="grid grid-cols-2 gap-3 mt-4 md:gap-4">
                                                             <MiniStat icon={FlaskConical} label="TVOC" value={gasData['TVOC']?.inlet} unit={gasData['TVOC']?.unit} theme="rose" />
-                                                        </div>
+                                                        </div> */}
                                                     </div>
                                                 }
                                             </div>
@@ -386,7 +387,7 @@ export default function Ashoka() {
 
                                             {/* TOP: Runtime */}
                                             <div className="relative z-20 bg-blue-50 backdrop-blur-sm border border-blue-200 p-2 md:p-3 w-28 text-center  mb-4 lg:mb-0">
-                                                
+
                                                 <div className="flex justify-center text-slate-400 mb-1"><Clock size={16} /></div>
                                                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Runtime</div>
                                                 <div className="font-mono font-bold text-slate-800 text-sm md:text-base">
@@ -446,15 +447,16 @@ export default function Ashoka() {
                                                         <div className="text-center mb-4 text-[14px] md:text-[16px] font-bold text-slate-400 uppercase"> Gases</div>
                                                         <div className="grid grid-cols-2 gap-3 md:gap-4">
                                                             <MiniStat icon={CloudFog} label="NO₂" value={gasData['NO₂']?.outlet} unit={gasData['NO₂']?.unit} theme="emerald" reduction={gasData['NO₂']?.reduction} />
-                                                            <MiniStat icon={Cloud} label="CO₂" value={gasData['CO₂']?.outlet} unit={gasData['CO₂']?.unit} theme="emerald" reduction={gasData['CO₂']?.reduction} />
+                                                            {/* <MiniStat icon={Cloud} label="CO₂" value={gasData['CO₂']?.outlet} unit={gasData['CO₂']?.unit} theme="emerald" reduction={gasData['CO₂']?.reduction} /> */}
+                                                            <MiniStat icon={FlaskConical} label="TVOC" value={gasData['TVOC']?.outlet} unit={gasData['TVOC']?.unit} theme="emerald" reduction={gasData['TVOC']?.reduction} />
                                                         </div>
                                                         <div className="grid grid-cols-2 gap-3 mt-4 md:gap-4">
                                                             <MiniStat icon={CloudRain} label="SO₂" value={gasData['SO₂']?.outlet} unit={gasData['SO₂']?.unit} theme="emerald" reduction={gasData['SO₂']?.reduction} />
                                                             <MiniStat icon={Flame} label="CO" value={gasData['CO']?.outlet} unit={gasData['CO']?.unit} theme="emerald" reduction={gasData['CO']?.reduction} />
                                                         </div>
-                                                        <div className="grid grid-cols-2 gap-3 mt-4 md:gap-4">
+                                                        {/* <div className="grid grid-cols-2 gap-3 mt-4 md:gap-4">
                                                             <MiniStat icon={FlaskConical} label="TVOC" value={gasData['TVOC']?.outlet} unit={gasData['TVOC']?.unit} theme="emerald" reduction={gasData['TVOC']?.reduction} />
-                                                        </div>
+                                                        </div> */}
                                                     </div>
                                                 }
                                             </div>
