@@ -188,7 +188,7 @@ export default function Ashoka() {
                             const outlet = data[yantra.outlet];
                             const pm25Red = getReduction(inlet, outlet, "pm2d5");
                             const pm10Red = getReduction(inlet, outlet, "pm10");
-                            const location = locations[yantra.inlet] || locations[yantra.outlet] || "Locating...";
+                            const location = locations[yantra.inlet] || locations[yantra.outlet] || FALLBACK_LOCATIONS[yantra.inlet] || FALLBACK_LOCATIONS[yantra.outlet] || "Locating...";
                             const isOnline = inlet && outlet;
 
                             return (
