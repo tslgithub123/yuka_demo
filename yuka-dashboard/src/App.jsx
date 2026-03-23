@@ -16,7 +16,7 @@ function App() {
         />
 
         {/* Ashoka Buildcon Dashboard */}
-        <Route path="/ashoka-buildcon" element={<Ashoka />} />
+        <Route path="/yuka-dashboard" element={<Ashoka />} />
         <Route path="/gas" element={<Gases />} />
 
         {/* Optional: 404 fallback (recommended) */}

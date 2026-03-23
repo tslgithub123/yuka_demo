@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
     MapPin,
-    RefreshCw,
     Wind,
     Clock,
     Droplets,
     Thermometer,
-    Activity,
     ShieldCheck,
     AlertTriangle,
-    Building2,
     Fan,
     Flame,
     CloudFog,
@@ -19,7 +16,6 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import logo from "../assets/logo.png";
-import ashokaLogo from "../assets/ashoka-buildcon-limited-logo.png"
 
 
 const pollutants = [
@@ -48,42 +44,26 @@ export default function Ashoka() {
     const [data, setData] = useState({});
     const [lastUpdate, setLastUpdate] = useState("");
     const [isLoading, setIsLoading] = useState(true);
-    const [isRefreshing, setIsRefreshing] = useState(false);
     const [locations, setLocations] = useState({});
     const [gasData, setGasData] = useState({});
 
-    const API_URL = process.env.NODE_ENV === "production"
+    const API_URL = import.meta.env.MODE === "production"
         ? "/api/latest-data"
         : "http://localhost:5000/api/latest-data";
 
     const YANTRAS = [
         {
-            name: "RMC Plant",
-            inlet: "8C:4F:00:19:94:C0",
-            outlet: "8C:4F:00:19:A4:F0",
+            name: "Yuka Yantra : Mumbai Powai",
+            inlet: "8C:4F:00:19:A6:54",
+            outlet: "8C:4F:00:19:7A:90",
             id: "rmc-01"
         },
-        {
-            name: "Entry Gate ABL",
-            inlet: "8C:4F:00:19:5E:44",
-            outlet: "8C:4F:00:19:A1:38",
-            id: "abl-01"
-        },
-        {
-            name: "P7 Highway",
-            inlet: "8C:4F:00:19:6A:A0",
-            outlet: "8C:4F:00:19:88:C4",
-            id: "p7-01"
-        },
+
     ];
 
     const FALLBACK_LOCATIONS = {
-        "8C:4F:00:19:94:C0": "Airport City Road, Devanahalli, Bengaluru Rural, Karnataka, India",
-        "8C:4F:00:19:A4:F0": "Airport City Road, Devanahalli, Bengaluru Rural, Karnataka, India",
-        "8C:4F:00:19:5E:44": "Yartiganahalli, Devanahalli, Bengaluru Rural, Karnataka, India",
-        "8C:4F:00:19:A1:38": "Yartiganahalli, Devanahalli, Bengaluru Rural, Karnataka, India",
-        "8C:4F:00:19:6A:A0": "Yartiganahalli, Devanahalli, Bengaluru Rural, Karnataka, India",
-        "8C:4F:00:19:88:C4": "Yartiganahalli, Devanahalli, Bengaluru Rural, Karnataka, India"
+        "8C:4F:00:19:A6:54": "CGS Colony, Sector 1, Antop Hill, F/N Ward, Mumbai Zone 2, Mumbai City District, Maharashtra, 400037",
+        "8C:4F:00:19:7A:90": "Technology Street, Hiranandani Gardens, Powai, S Ward, Mumbai Zone 6, Mumbai, Mumbai Suburban District, Maharashtra, 400076"
     };
 
     const getLocationName = async (lat, lng, devId) => {
@@ -105,7 +85,6 @@ export default function Ashoka() {
     };
 
     const fetchData = async () => {
-        setIsRefreshing(true);
         try {
             const res = await fetch(API_URL);
             const json = await res.json();
@@ -122,8 +101,6 @@ export default function Ashoka() {
         } catch (err) {
             console.error(err);
             setIsLoading(false);
-        } finally {
-            setIsRefreshing(false);
         }
     };
 
@@ -183,65 +160,6 @@ export default function Ashoka() {
     return (
         <div className="min-h-screen bg-slate-100 font-sans text-slate-800 pb-20">
 
-
-            {/* 1. Professional Navbar - Responsive & Square */}
-            <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-auto md:h-20 py-3 md:py-0 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-0">
-
-
-                    {/* Logo Section */}
-                    <div className="flex items-center gap-4 w-full md:w-auto justify-center md:justify-start">
-                        <img src={logo} alt="Techknowgreen" className="h-10 md:h-12 w-auto object-contain" />
-                        <div className="hidden md:block w-px h-8 bg-slate-200"></div>
-                        <div className="text-center md:text-left">
-                            {/* <div className="flex items-center justify-center md:justify-start gap-2 text-slate-900 font-bold text-base md:text-lg">
-                                <Building2 size={18} className="text-orange-600 shrink-0" />
-                                <span className="truncate">Ashoka Buildcon Ltd.</span>
-                            </div> */}
-                            <img src={ashokaLogo} alt="Ashoka Buildcon Limited" className="h-10 md:h-12 w-auto object-contain" />
-
-                        </div>
-                    </div>
-
-                    {/* <div className="text-center md:text-left">
-                            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Yuka Yantra</h1>
-                            <p className="text-slate-500 mt-2 text-sm md:text-base max-w-2xl">
-                                Real-time monitoring of air quality & purification efficiency
-                            </p>
-                        </div> */}
-
-
-                    {/* Controls Section */}
-                    <div className="flex items-center gap-3 w-full md:w-auto justify-center md:justify-end">
-                        <a
-                            href="https://techknowgreen-my.sharepoint.com/:f:/p/satish_chandra/EqFnT-W8Jk9JqXeMOUHMvf0Bv7sLme4fkP16aV_TNP9N2w?e=ngzl5d"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-block p-2 cursor-pointer bg-blue-100 hover:bg-blue-300 text-blue-600/80 border border-blue-600/10 "
-                        >
-
-                            View Reports
-                        </a>
-
-                        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-none text-green-700 text-xs font-bold uppercase tracking-wide whitespace-nowrap">
-
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                            </span>
-                            Live Data
-                        </div>
-                        <button
-                            onClick={fetchData}
-                            disabled={isRefreshing}
-                            className={` text-slate-500 hover:bg-slate-100 rounded-none transition-all ${isRefreshing ? 'animate-spin' : ''}`}
-                        >
-                            <RefreshCw size={20} />
-                        </button>
-                    </div>
-
-                </div>
-            </nav>
 
             {/* 2. Main Content Area */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
@@ -553,7 +471,8 @@ const StatRow = ({ label, value, unit, color }) => {
     );
 };
 
-const MiniStat = ({ icon: Icon, label, value, unit, theme, reduction }) => {
+const MiniStat = (props) => {
+    const { icon: IconComponent, label, value, unit, theme, reduction } = props;
     const isEmerald = theme === 'emerald';
     const bgClass = isEmerald ? 'bg-emerald-50' : 'bg-rose-50';
     const textClass = isEmerald ? 'text-emerald-700' : 'text-rose-700';
@@ -562,7 +481,7 @@ const MiniStat = ({ icon: Icon, label, value, unit, theme, reduction }) => {
     return (
         <div className={`flex items-center justify-between border border-${isEmerald ? 'emerald-200' : 'rose-200'} p-2 md:p-3 rounded-none ${bgClass}`}>
             <div className="flex items-center gap-2 md:gap-3">
-                <Icon size={20} className={`shrink-0 ${iconClass} md:w-6 md:h-6`} />
+                <IconComponent size={20} className={`shrink-0 ${iconClass} md:w-6 md:h-6`} />
                 <div className={`flex flex-col leading-none`}>
                     <span className={`font-bold text-sm md:text-base tabular-nums ${textClass}`}>
                         {value ? value.toFixed(1) : "--"} <span className="text-[9px] md:text-[10px] opacity-70">{unit}</span>
